@@ -69,7 +69,7 @@ def process_dir(directory, modules=None, module_directories=None, force=False):
         fortranfile = fyppfile.with_suffix('.F90')
 
         if force or (not fortranfile.exists()):
-            #Always process if force is true or the file does not exist
+            #Always process if force is true or the Fortran file does not exist
             process = True
         else:
             #Else, check if the fypp file was modified after the fortran file
