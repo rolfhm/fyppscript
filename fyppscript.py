@@ -34,11 +34,18 @@ def input_parser():
         default = [],
     )
 
+    parser.add_argument(
+        "-f",
+        "--force",
+        help = "Process all fypp files, even if there are newer .F90 files",
+        action = "store_true"
+    )
+
     args = parser.parse_args()
     return args
 
 
-def process_dir(directory, modules, module_directories=None):
+def process_dir(directory, modules=None, module_directories=None, force=False):
     """
     Find all fypp files in directory and its subdirectories
     and process them with Fypp.
@@ -61,8 +68,20 @@ def process_dir(directory, modules, module_directories=None):
         #Generate a Path to a .F90 file in the same directory
         fortranfile = fyppfile.with_suffix('.F90')
 
-        #Process the fyppfile and write to fortranfile
-        tool.process_file(str(fyppfile), str(fortranfile))
+        if force or (not fortranfile.exists()):
+            #Always process if force is true or the file does not exist
+            process = True
+        else:
+            #Else, check if the fypp file was modified after the fortran file
+            process = fyppfile.stat().st_mtime >= fortranfile.stat().st_mtime
+
+        #If true, process the fyppfile and write to fortranfile
+        if process:
+            print('Process: ', fyppfile)
+            tool.process_file(str(fyppfile), str(fortranfile))
+        else: 
+            print('Skip: ', fyppfile)
+        print()
 
 
 def main():
@@ -72,7 +91,7 @@ def main():
 
     args = input_parser()
 
-    process_dir(args.src_dir[0], args.modules, args.module_directories)
+    process_dir(args.src_dir[0], args.modules, args.module_directories, args.force)
 
 if __name__ == "__main__":
     main()
